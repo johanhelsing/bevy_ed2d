@@ -610,6 +610,7 @@ dependencies = [
  "bevy_ecs",
  "bevy_gizmos_macros",
  "bevy_math",
+ "bevy_pbr",
  "bevy_reflect",
  "bevy_render",
  "bevy_sprite",
@@ -680,16 +681,20 @@ dependencies = [
  "bevy_input",
  "bevy_log",
  "bevy_math",
+ "bevy_pbr",
  "bevy_ptr",
  "bevy_reflect",
  "bevy_render",
  "bevy_scene",
  "bevy_sprite",
  "bevy_tasks",
+ "bevy_text",
  "bevy_time",
  "bevy_transform",
+ "bevy_ui",
  "bevy_utils",
  "bevy_window",
+ "bevy_winit",
 ]
 
 [[package]]
