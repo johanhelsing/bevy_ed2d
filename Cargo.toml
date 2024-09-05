@@ -2,6 +2,12 @@
 name = "bevy_ed2d"
 version = "0.1.0"
 edition = "2021"
+authors = ["Johan Helsing <johanhelsing@gmail.com>"]
+categories = ["game-development"]
+description = "A bevy 2d editor in one line of code"
+keywords = ["gamedev", "bevy"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/johanhelsing/bevy_ed2d"
 
 [dependencies]
 bevy = "0.14"

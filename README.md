@@ -29,6 +29,23 @@ fn main() {
 }
 ```
 
+## Bevy Version Support
+
+The `main` branch targets the latest bevy release.
+
+|bevy|bevy_ed2d|
+|----|---------|
+|0.14|main     |
+
+## License
+
+`bevy_ed2d` is dual-licensed under either
+
+- MIT License (./LICENSE-MIT or <http://opensource.org/licenses/MIT>)
+- Apache License, Version 2.0 (./LICENSE-APACHE or <http://www.apache.org/licenses/LICENSE-2.0>)
+
+at your option.
+
 ## Credit
 
 Heavily based on [bevy_editor_pls](https://github.com/jakobhellermann/bevy_editor_pls)
