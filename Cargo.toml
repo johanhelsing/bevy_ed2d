@@ -1,0 +1,12 @@
+[package]
+name = "bevy_ed2d"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.14"
+bevy_pancam = "0.14"
+bevy-inspector-egui = "0.25"
+egui_dock = "0.13"
+# bevy_mod_picking = "0.20"
+bevy_mod_picking = {git = "https://github.com/johanhelsing/bevy_mod_picking", branch = "fix-sprite-viewport"}
