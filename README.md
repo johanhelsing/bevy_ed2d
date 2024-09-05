@@ -2,6 +2,8 @@
 
 Easily edit 2D Bevy scenes with one line of code.
 
+![editor preview](./docs/editor.png)
+
 ## Motivation
 
 I was tinkering with making 2D platforming physics crate, and I wanted to easily see what I was doing in the different examples with a minimal amount of code.
