@@ -20,7 +20,7 @@ use egui_dock::{egui, DockArea, DockState, NodeIndex};
 use std::any::TypeId;
 
 pub struct Ed2dPlugin {
-    auto_add_pickables: bool,
+    pub auto_add_pickables: bool,
 }
 
 impl Default for Ed2dPlugin {
