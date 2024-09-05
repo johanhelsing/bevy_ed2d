@@ -4,7 +4,7 @@ use bevy_mod_picking::PickableBundle;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, Ed2dPlugin))
+        .add_plugins((DefaultPlugins, Ed2dPlugin::default()))
         .add_systems(Startup, setup)
         .run();
 }

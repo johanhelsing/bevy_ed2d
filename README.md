@@ -24,7 +24,7 @@ use bevy_ed2d::Ed2dPlugin;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, Ed2dPlugin))
+        .add_plugins((DefaultPlugins, Ed2dPlugin::default()))
         .run();
 }
 ```

@@ -19,10 +19,17 @@ use bevy_pancam::{PanCam, PanCamPlugin};
 use egui_dock::{egui, DockArea, DockState, NodeIndex};
 use std::any::TypeId;
 
-pub struct Ed2dPlugin;
+pub struct Ed2dPlugin {
+    auto_add_pickables: bool,
+}
 
-#[derive(Component)]
-struct Ed2dCamera;
+impl Default for Ed2dPlugin {
+    fn default() -> Self {
+        Self {
+            auto_add_pickables: true,
+        }
+    }
+}
 
 impl Plugin for Ed2dPlugin {
     fn build(&self, app: &mut App) {
@@ -51,8 +58,15 @@ impl Plugin for Ed2dPlugin {
             .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
             .insert_resource(DebugPickingMode::Normal)
             .init_resource::<UiState>();
+
+        if self.auto_add_pickables {
+            app.add_systems(Update, auto_add_pickables);
+        }
     }
 }
+
+#[derive(Component)]
+struct Ed2dCamera;
 
 fn setup(mut commands: Commands) {
     // Camera
@@ -361,40 +375,36 @@ fn is_ui_active(ui_state: Res<UiState>) -> bool {
     ui_state.active
 }
 
-/*
-fn auto_add_raycast_target(
+fn auto_add_pickables(
     mut commands: Commands,
-    query: Query<Entity, (Without<PickRaycastTarget>, With<Handle<Mesh>>)>,
+    query: Query<Entity, (Without<Pickable>, With<Sprite>)>,
 ) {
     for entity in &query {
-        commands
-            .entity(entity)
-            .insert((PickRaycastTarget::default(), PickableBundle::default()));
+        commands.entity(entity).insert(PickableBundle::default());
     }
 }
 
-fn handle_pick_events(
-    mut ui_state: ResMut<UiState>,
-    mut click_events: EventReader<PointerClick>,
-    mut egui: ResMut<EguiContext>,
-    egui_entity: Query<&EguiPointer>,
-) {
-    let egui_context = egui.ctx_mut();
+// fn handle_pick_events(
+//     mut ui_state: ResMut<UiState>,
+//     mut click_events: EventReader<PointerClick>,
+//     mut egui: ResMut<EguiContext>,
+//     egui_entity: Query<&EguiPointer>,
+// ) {
+//     let egui_context = egui.ctx_mut();
 
-    for click in click_events.iter() {
-        if egui_entity.get(click.target()).is_ok() {
-            continue;
-        };
+//     for click in click_events.iter() {
+//         if egui_entity.get(click.target()).is_ok() {
+//             continue;
+//         };
 
-        let modifiers = egui_context.input().modifiers;
-        let add = modifiers.ctrl || modifiers.shift;
+//         let modifiers = egui_context.input().modifiers;
+//         let add = modifiers.ctrl || modifiers.shift;
 
-        ui_state
-            .selected_entities
-            .select_maybe_add(click.target(), add);
-    }
-}
-*/
+//         ui_state
+//             .selected_entities
+//             .select_maybe_add(click.target(), add);
+//     }
+// }
 
 // fn set_gizmo_mode(input: Res<ButtonInput<KeyCode>>, mut ui_state: ResMut<UiState>) {
 //     for (key, mode) in [
