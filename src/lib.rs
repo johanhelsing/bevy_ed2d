@@ -1,9 +1,13 @@
+use backend::{HitData, PointerHits};
 use bevy::{
     asset::{ReflectAsset, UntypedAssetId},
     color::palettes,
     prelude::*,
     reflect::TypeRegistry,
-    render::{camera::Viewport, primitives::Aabb},
+    render::{
+        camera::{NormalizedRenderTarget, Viewport},
+        primitives::Aabb,
+    },
     window::PrimaryWindow,
 };
 use bevy_inspector_egui::{
@@ -18,7 +22,7 @@ use bevy_inspector_egui::{
 use bevy_mod_picking::prelude::*;
 use bevy_pancam::{PanCam, PanCamPlugin};
 use egui_dock::{
-    egui::{self},
+    egui::{self, Sense},
     DockArea, DockState, NodeIndex,
 };
 use std::any::TypeId;
@@ -57,7 +61,7 @@ impl Plugin for Ed2dPlugin {
                 (select_clicked, draw_aabb_gizmos, handle_deselect_events).run_if(is_ui_active),
             )
             .add_systems(
-                PostUpdate,
+                Update,
                 show_ui_system
                     .run_if(is_ui_active)
                     .before(EguiSet::ProcessOutput)
@@ -66,6 +70,9 @@ impl Plugin for Ed2dPlugin {
             .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
             .insert_resource(DebugPickingMode::Normal)
             .init_resource::<UiState>();
+
+        app.add_systems(First, add_no_deselect);
+        app.add_systems(PostUpdate, editor_picking);
 
         if self.auto_add_pickables {
             app.add_systems(Update, auto_add_pickables);
@@ -157,6 +164,7 @@ struct UiState {
     active: bool,
     state: DockState<EguiWindow>,
     viewport_rect: egui::Rect,
+    viewport_hovered: bool,
     selected_entities: SelectedEntities,
     selection: InspectorSelection,
     // gizmo_mode: GizmoMode,
@@ -182,6 +190,7 @@ impl Default for UiState {
             selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
+            viewport_hovered: false,
             // gizmo_mode: GizmoMode::Translate,
         }
     }
@@ -192,6 +201,7 @@ impl UiState {
         let mut tab_viewer = TabViewer {
             world,
             viewport_rect: &mut self.viewport_rect,
+            viewport_hovered: &mut self.viewport_hovered,
             selected_entities: &mut self.selected_entities,
             selection: &mut self.selection,
             // gizmo_mode: self.gizmo_mode,
@@ -216,6 +226,7 @@ struct TabViewer<'a> {
     selected_entities: &'a mut SelectedEntities,
     selection: &'a mut InspectorSelection,
     viewport_rect: &'a mut egui::Rect,
+    viewport_hovered: &'a mut bool,
     // gizmo_mode: GizmoMode,
 }
 
@@ -229,6 +240,8 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         match window {
             EguiWindow::GameView => {
                 *self.viewport_rect = ui.clip_rect();
+                let response = ui.interact(*self.viewport_rect, ui.id(), Sense::hover());
+                *self.viewport_hovered = response.hovered();
 
                 // draw_gizmo(ui, self.world, self.selected_entities, self.gizmo_mode);
             }
@@ -351,12 +364,17 @@ fn select_asset(
 fn select_clicked(
     mut ui_state: ResMut<UiState>,
     mut clicks: EventReader<Pointer<Click>>,
+    no_deselects: Query<(), With<NoDeselect>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
     for click in clicks.read() {
         println!("Clicked: {:?}", click);
         // select the clicked entity in the inspector
         let clicked_entity = click.target;
+
+        if no_deselects.contains(clicked_entity) {
+            return;
+        }
 
         let selection_mode = if keys.any_pressed([
             KeyCode::ControlLeft,
@@ -515,5 +533,37 @@ fn draw_aabb_gizmos(mut gizmos: Gizmos, aabbs: Query<(&Aabb, &GlobalTransform, &
         let size = scale.xy() * aabb.half_extents.xy() * 2.0;
         let color = palettes::basic::LIME;
         gizmos.rect(translation, rotation, size, color)
+    }
+}
+
+fn add_no_deselect(
+    mut commands: Commands,
+    egui_context: Query<Entity, (With<EguiContext>, Without<NoDeselect>)>,
+) {
+    for entity in &egui_context {
+        commands.entity(entity).try_insert(NoDeselect);
+    }
+}
+
+/// If egui in the current window is reporting that the pointer is over it, we report a hit.
+fn editor_picking(
+    pointers: Query<(&PointerId, &PointerLocation)>,
+    mut egui_context: Query<(Entity, &mut EguiContext)>,
+    mut output: EventWriter<PointerHits>,
+    ui_state: Res<UiState>,
+) {
+    for (pointer, location) in pointers
+        .iter()
+        .filter_map(|(i, p)| p.location.as_ref().map(|l| (i, l)))
+    {
+        if let NormalizedRenderTarget::Window(id) = location.target {
+            if let Ok((entity, mut ctx)) = egui_context.get_mut(id.entity()) {
+                if ctx.get_mut().wants_pointer_input() && !ui_state.viewport_hovered {
+                    let entry = (entity, HitData::new(entity, 0.0, None, None));
+                    let order = 1_000_000f32; // Assume egui should be on top of everything else.
+                    output.send(PointerHits::new(*pointer, Vec::from([entry]), order));
+                }
+            }
+        }
     }
 }
