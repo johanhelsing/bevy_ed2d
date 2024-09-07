@@ -63,7 +63,7 @@ impl Plugin for Ed2dPlugin {
             )
             .add_systems(
                 Update,
-                (show_ui_system, update_pick_selections)
+                (show_ui_system, update_pick_selections, toggle_pancam)
                     .chain()
                     .run_if(is_ui_active)
                     .before(EguiSet::ProcessOutput)
@@ -563,6 +563,25 @@ fn update_pick_selections(
                 }
                 SelectionMode::Extend => todo!(),
             }
+        }
+    }
+}
+
+fn toggle_pancam(
+    ui_state: Res<UiState>,
+    mut pancams: Query<&mut PanCam, With<Ed2dCamera>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
+) {
+    for mut pancam in &mut pancams.iter_mut() {
+        let hovered = ui_state.viewport_hovered && ui_state.active;
+        if hovered && !pancam.enabled {
+            pancam.enabled = true;
+        }
+        if !hovered
+            && pancam.enabled
+            && !mouse_buttons.any_pressed(pancam.grab_buttons.as_slice().iter().copied())
+        {
+            pancam.enabled = false;
         }
     }
 }
