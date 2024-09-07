@@ -373,7 +373,6 @@ fn select_clicked(
     keys: Res<ButtonInput<KeyCode>>,
 ) {
     for click in clicks.read() {
-        println!("Clicked: {:?}", click);
         // select the clicked entity in the inspector
         let clicked_entity = click.target;
 
