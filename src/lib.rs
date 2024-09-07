@@ -558,15 +558,32 @@ fn editor_picking(
     }
 }
 
+/// Syncs UiState picking back to bevy_mod_picking
 fn update_pick_selections(
     ui_state: Res<UiState>,
     mut changed_events: EventReader<EditorEntitySelectionChanged>,
-    mut pick_selections: Query<&mut PickSelection>,
+    mut pick_selections: Query<(Entity, &mut PickSelection)>,
 ) {
     for _ in changed_events.read() {
-        if let Some(entity) = ui_state.selected_entities.as_slice().last().copied() {
-            if let Ok(mut pick_selection) = pick_selections.get_mut(entity) {
-                pick_selection.is_selected = true;
+        if let Some((mode, target_entity)) = ui_state.selected_entities.last_action() {
+            match mode {
+                SelectionMode::Replace => {
+                    for (e, mut pick_selection) in &mut pick_selections.iter_mut() {
+                        let is_selected = e == target_entity;
+                        if is_selected != pick_selection.is_selected {
+                            pick_selection.is_selected = is_selected;
+                        }
+                    }
+                }
+                SelectionMode::Add => {
+                    // somewhat confusingly `Add` may either remove or add an entity
+                    let is_selected = ui_state.selected_entities.contains(target_entity);
+
+                    if let Ok((_, mut pick_selection)) = pick_selections.get_mut(target_entity) {
+                        pick_selection.is_selected = is_selected;
+                    }
+                }
+                SelectionMode::Extend => todo!(),
             }
         }
     }
