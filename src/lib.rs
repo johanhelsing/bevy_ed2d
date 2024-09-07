@@ -10,7 +10,7 @@ use bevy_inspector_egui::{
     bevy_egui::{self, EguiContext, EguiPlugin, EguiSet},
     bevy_inspector::{
         self,
-        hierarchy::{hierarchy_ui, SelectedEntities},
+        hierarchy::{hierarchy_ui, SelectedEntities, SelectionMode},
         ui_for_entities_shared_components, ui_for_entity_with_children,
     },
     DefaultInspectorConfigPlugin,
@@ -352,18 +352,18 @@ fn select_clicked(
         // select the clicked entity in the inspector
         let clicked_entity = click.target;
 
-        let add = keys.any_pressed([
-            KeyCode::ControlLeft,
-            KeyCode::ControlRight,
-            KeyCode::ShiftLeft,
-            KeyCode::ShiftRight,
-        ]);
+        let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+        let shift = keys.any_pressed([KeyCode::ShiftLeft, KeyCode::ShiftRight]);
+        let selection_mode = SelectionMode::from_ctrl_shift(ctrl, shift);
+
+        ui_state
+            .selected_entities
+            .select(selection_mode, clicked_entity, |_, _| {
+                std::iter::once(clicked_entity)
+            });
 
         // select in the inspector
         ui_state.selection = InspectorSelection::Entities;
-        ui_state
-            .selected_entities
-            .select_maybe_add(clicked_entity, add);
     }
 }
 

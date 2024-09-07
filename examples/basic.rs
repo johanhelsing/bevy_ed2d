@@ -1,4 +1,4 @@
-use bevy::{color::palettes, math::vec2, prelude::*};
+use bevy::{math::vec2, prelude::*};
 use bevy_ed2d::Ed2dPlugin;
 use bevy_mod_picking::PickableBundle;
 
