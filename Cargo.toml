@@ -11,6 +11,7 @@ repository = "https://github.com/johanhelsing/bevy_ed2d"
 
 [dependencies]
 bevy = {version = "0.14", default-features = false, features = [
+    "bevy_gizmos",
     "bevy_sprite",
     "bevy_pbr", # needed for picking not to crash
     "bevy_ui" # needed for ui picking

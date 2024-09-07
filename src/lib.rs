@@ -1,5 +1,6 @@
 use bevy::{
     asset::{ReflectAsset, UntypedAssetId},
+    color::palettes,
     prelude::*,
     reflect::TypeRegistry,
     render::camera::Viewport,
@@ -48,6 +49,7 @@ impl Plugin for Ed2dPlugin {
 
         app.add_systems(Startup, setup)
             .add_systems(Update, (select_clicked, toggle_active))
+            .add_systems(Update, draw_sprite_gizmos.run_if(is_ui_active))
             .add_systems(
                 PostUpdate,
                 show_ui_system
@@ -463,3 +465,20 @@ fn auto_add_pickables(
 //         };
 //     }*/
 // }
+
+fn draw_sprite_gizmos(
+    mut gizmos: Gizmos,
+    sprites: Query<(&Sprite, &GlobalTransform, &PickSelection)>,
+) {
+    for (sprite, transform, pick_selection) in &sprites {
+        if !pick_selection.is_selected {
+            continue;
+        }
+        let (scale, rotation, translation) = transform.to_scale_rotation_translation();
+        let position = translation.xy();
+        let rotation = rotation.to_euler(EulerRot::YXZ).2;
+        let size = scale.xy() * sprite.custom_size.unwrap_or(Vec2::ONE);
+        let color = palettes::basic::LIME;
+        gizmos.rect_2d(position, rotation, size, color)
+    }
+}
