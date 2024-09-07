@@ -51,3 +51,4 @@ at your option.
 ## Credit
 
 Heavily based on [bevy_editor_pls](https://github.com/jakobhellermann/bevy_editor_pls)
+And <https://github.com/UmbraLuminosa/Proof-of-Concept-Editor-in-Bevy/>

@@ -17,7 +17,10 @@ use bevy_inspector_egui::{
 };
 use bevy_mod_picking::prelude::*;
 use bevy_pancam::{PanCam, PanCamPlugin};
-use egui_dock::{egui, DockArea, DockState, NodeIndex};
+use egui_dock::{
+    egui::{self, style::Selection},
+    DockArea, DockState, NodeIndex,
+};
 use std::any::TypeId;
 
 pub struct Ed2dPlugin {
@@ -48,8 +51,11 @@ impl Plugin for Ed2dPlugin {
         }
 
         app.add_systems(Startup, setup)
-            .add_systems(Update, (select_clicked, toggle_active))
-            .add_systems(Update, draw_aabb_gizmos.run_if(is_ui_active))
+            .add_systems(Update, toggle_active)
+            .add_systems(
+                Update,
+                (select_clicked, draw_aabb_gizmos, handle_deselect_events).run_if(is_ui_active),
+            )
             .add_systems(
                 PostUpdate,
                 show_ui_system
@@ -352,13 +358,22 @@ fn select_clicked(
         // select the clicked entity in the inspector
         let clicked_entity = click.target;
 
-        let ctrl = keys.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
-        let shift = keys.any_pressed([KeyCode::ShiftLeft, KeyCode::ShiftRight]);
-        let selection_mode = SelectionMode::from_ctrl_shift(ctrl, shift);
+        let selection_mode = if keys.any_pressed([
+            KeyCode::ControlLeft,
+            KeyCode::ControlRight,
+            KeyCode::ShiftLeft,
+            KeyCode::ShiftRight,
+        ]) {
+            // NOTE: `Add` toggles, not the same as select_maybe_add(_, true)
+            SelectionMode::Add
+        } else {
+            SelectionMode::Replace
+        };
 
         ui_state
             .selected_entities
             .select(selection_mode, clicked_entity, |_, _| {
+                // unreachable
                 std::iter::once(clicked_entity)
             });
 
@@ -383,6 +398,30 @@ fn auto_add_pickables(
 ) {
     for entity in &query {
         commands.entity(entity).insert(PickableBundle::default());
+    }
+}
+
+fn handle_deselect_events(
+    mut ui_state: ResMut<UiState>,
+    mut click_events: EventReader<Pointer<Click>>,
+    mut deselect_events: EventReader<Pointer<Deselect>>,
+    input: Res<ButtonInput<KeyCode>>,
+) {
+    for click in click_events.read() {
+        let add = input.any_pressed([
+            KeyCode::ControlLeft,
+            KeyCode::ControlRight,
+            KeyCode::ShiftLeft,
+            KeyCode::ShiftRight,
+        ]);
+
+        ui_state
+            .selected_entities
+            .select_maybe_add(click.target(), add);
+    }
+
+    for _ in deselect_events.read() {
+        ui_state.selected_entities.clear();
     }
 }
 
