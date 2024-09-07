@@ -18,7 +18,7 @@ use bevy_inspector_egui::{
 use bevy_mod_picking::prelude::*;
 use bevy_pancam::{PanCam, PanCamPlugin};
 use egui_dock::{
-    egui::{self, style::Selection},
+    egui::{self},
     DockArea, DockState, NodeIndex,
 };
 use std::any::TypeId;
