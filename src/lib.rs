@@ -373,6 +373,10 @@ fn select_clicked(
     keys: Res<ButtonInput<KeyCode>>,
 ) {
     for click in clicks.read() {
+        if click.event.button != PointerButton::Primary {
+            return;
+        }
+
         // select the clicked entity in the inspector
         let clicked_entity = click.target;
 
