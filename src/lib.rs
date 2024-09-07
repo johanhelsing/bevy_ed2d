@@ -55,6 +55,7 @@ impl Plugin for Ed2dPlugin {
         }
 
         app.add_systems(Startup, setup)
+            .add_systems(First, add_no_deselect)
             .add_systems(Update, toggle_active)
             .add_systems(
                 Update,
@@ -62,23 +63,26 @@ impl Plugin for Ed2dPlugin {
             )
             .add_systems(
                 Update,
-                show_ui_system
+                (show_ui_system, update_pick_selections)
+                    .chain()
                     .run_if(is_ui_active)
                     .before(EguiSet::ProcessOutput)
                     .before(bevy::transform::TransformSystem::TransformPropagate),
             )
             .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
+            .add_systems(PostUpdate, editor_picking)
             .insert_resource(DebugPickingMode::Normal)
-            .init_resource::<UiState>();
-
-        app.add_systems(First, add_no_deselect);
-        app.add_systems(PostUpdate, editor_picking);
+            .init_resource::<UiState>()
+            .add_event::<EditorEntitySelectionChanged>();
 
         if self.auto_add_pickables {
             app.add_systems(Update, auto_add_pickables);
         }
     }
 }
+
+#[derive(Event)]
+struct EditorEntitySelectionChanged;
 
 #[derive(Component)]
 struct Ed2dCamera;
@@ -249,6 +253,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                 let selected = hierarchy_ui(self.world, ui, self.selected_entities);
                 if selected {
                     *self.selection = InspectorSelection::Entities;
+                    self.world.send_event(EditorEntitySelectionChanged);
                 }
             }
             EguiWindow::Resources => select_resource(ui, &type_registry, self.selection),
@@ -423,8 +428,8 @@ fn handle_deselect_events(
     mut ui_state: ResMut<UiState>,
     mut deselect_events: EventReader<Pointer<Deselect>>,
 ) {
-    for _ in deselect_events.read() {
-        ui_state.selected_entities.clear();
+    for deselect in deselect_events.read() {
+        ui_state.selected_entities.remove(deselect.target());
     }
 }
 
@@ -548,6 +553,20 @@ fn editor_picking(
                     let order = 1_000_000f32; // Assume egui should be on top of everything else.
                     output.send(PointerHits::new(*pointer, Vec::from([entry]), order));
                 }
+            }
+        }
+    }
+}
+
+fn update_pick_selections(
+    ui_state: Res<UiState>,
+    mut changed_events: EventReader<EditorEntitySelectionChanged>,
+    mut pick_selections: Query<&mut PickSelection>,
+) {
+    for _ in changed_events.read() {
+        if let Some(entity) = ui_state.selected_entities.as_slice().last().copied() {
+            if let Ok(mut pick_selection) = pick_selections.get_mut(entity) {
+                pick_selection.is_selected = true;
             }
         }
     }
