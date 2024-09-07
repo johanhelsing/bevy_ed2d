@@ -433,28 +433,6 @@ fn handle_deselect_events(
     }
 }
 
-// fn handle_pick_events(
-//     mut ui_state: ResMut<UiState>,
-//     mut click_events: EventReader<PointerClick>,
-//     mut egui: ResMut<EguiContext>,
-//     egui_entity: Query<&EguiPointer>,
-// ) {
-//     let egui_context = egui.ctx_mut();
-
-//     for click in click_events.iter() {
-//         if egui_entity.get(click.target()).is_ok() {
-//             continue;
-//         };
-
-//         let modifiers = egui_context.input().modifiers;
-//         let add = modifiers.ctrl || modifiers.shift;
-
-//         ui_state
-//             .selected_entities
-//             .select_maybe_add(click.target(), add);
-//     }
-// }
-
 // fn set_gizmo_mode(input: Res<ButtonInput<KeyCode>>, mut ui_state: ResMut<UiState>) {
 //     for (key, mode) in [
 //         (KeyCode::KeyR, GizmoMode::Rotate),
