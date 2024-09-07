@@ -374,14 +374,14 @@ fn select_clicked(
 ) {
     for click in clicks.read() {
         if click.event.button != PointerButton::Primary {
-            return;
+            continue;
         }
 
         // select the clicked entity in the inspector
         let clicked_entity = click.target;
 
         if no_deselects.contains(clicked_entity) {
-            return;
+            continue;
         }
 
         let selection_mode = if keys.any_pressed([
