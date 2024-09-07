@@ -13,7 +13,7 @@ The goal of this package is not to be super customizable or feature-rich, but si
 - [x] picking
 - [x] inspector
 - [x] moving and zooming the camera
-- [ ] highlighting selected objects
+- [x] highlighting selected objects
 - [ ] gizmo for moving selected objects
 
 Hopefully, Bevy will get an official editor soon, and this package will be obsolete.
