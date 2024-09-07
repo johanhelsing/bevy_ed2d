@@ -466,8 +466,8 @@ fn auto_add_pickables(
 //     }*/
 // }
 
-fn draw_aabb_gizmos(mut gizmos: Gizmos, sprites: Query<(&Aabb, &GlobalTransform, &PickSelection)>) {
-    for (aabb, transform, pick_selection) in &sprites {
+fn draw_aabb_gizmos(mut gizmos: Gizmos, aabbs: Query<(&Aabb, &GlobalTransform, &PickSelection)>) {
+    for (aabb, transform, pick_selection) in &aabbs {
         if !pick_selection.is_selected {
             continue;
         }
