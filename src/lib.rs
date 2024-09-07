@@ -474,11 +474,10 @@ fn draw_sprite_gizmos(
         if !pick_selection.is_selected {
             continue;
         }
+
         let (scale, rotation, translation) = transform.to_scale_rotation_translation();
-        let position = translation.xy();
-        let rotation = rotation.to_euler(EulerRot::YXZ).2;
         let size = scale.xy() * sprite.custom_size.unwrap_or(Vec2::ONE);
         let color = palettes::basic::LIME;
-        gizmos.rect_2d(position, rotation, size, color)
+        gizmos.rect(translation, rotation, size, color)
     }
 }
