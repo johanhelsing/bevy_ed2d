@@ -421,23 +421,8 @@ fn auto_add_pickables(
 
 fn handle_deselect_events(
     mut ui_state: ResMut<UiState>,
-    mut click_events: EventReader<Pointer<Click>>,
     mut deselect_events: EventReader<Pointer<Deselect>>,
-    input: Res<ButtonInput<KeyCode>>,
 ) {
-    for click in click_events.read() {
-        let add = input.any_pressed([
-            KeyCode::ControlLeft,
-            KeyCode::ControlRight,
-            KeyCode::ShiftLeft,
-            KeyCode::ShiftRight,
-        ]);
-
-        ui_state
-            .selected_entities
-            .select_maybe_add(click.target(), add);
-    }
-
     for _ in deselect_events.read() {
         ui_state.selected_entities.clear();
     }
