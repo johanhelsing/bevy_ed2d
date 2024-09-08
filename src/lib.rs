@@ -185,7 +185,7 @@ impl Default for UiState {
 
         let [_hierarchy, _resources_and_assets] = tree.split_below(
             hierarchy,
-            0.6,
+            0.35,
             vec![EguiWindow::Resources, EguiWindow::Assets],
         );
 
