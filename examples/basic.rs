@@ -1,9 +1,10 @@
-use bevy::{math::vec2, prelude::*};
+use bevy::{color::palettes, math::vec2, prelude::*};
 use bevy_ed2d::Ed2dPlugin;
 use bevy_mod_picking::PickableBundle;
 
 fn main() {
     App::new()
+        .insert_resource(ClearColor(palettes::tailwind::NEUTRAL_800.into()))
         .add_plugins((DefaultPlugins, Ed2dPlugin::default()))
         .add_systems(Startup, setup)
         .run();
@@ -14,7 +15,7 @@ fn setup(mut commands: Commands) {
         Name::new("Blue square"),
         SpriteBundle {
             sprite: Sprite {
-                color: Color::srgb(0.3, 0.3, 0.45),
+                color: palettes::tailwind::BLUE_500.into(),
                 custom_size: Some(vec2(100., 100.)),
                 ..default()
             },
@@ -28,7 +29,7 @@ fn setup(mut commands: Commands) {
         SpriteBundle {
             transform: Transform::from_translation(Vec3::new(0., -200., 0.)),
             sprite: Sprite {
-                color: Color::srgb(0.45, 0.3, 0.3),
+                color: palettes::tailwind::RED_500.into(),
                 custom_size: Some(vec2(300., 50.)),
                 ..default()
             },

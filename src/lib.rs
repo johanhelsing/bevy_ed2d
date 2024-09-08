@@ -2,6 +2,7 @@ use backend::{HitData, PointerHits};
 use bevy::{
     asset::{ReflectAsset, UntypedAssetId},
     color::palettes,
+    math::VectorSpace,
     prelude::*,
     reflect::TypeRegistry,
     render::{
@@ -494,16 +495,59 @@ fn handle_deselect_events(
 //     }*/
 // }
 
-fn draw_aabb_gizmos(mut gizmos: Gizmos, aabbs: Query<(&Aabb, &GlobalTransform, &PickSelection)>) {
+fn draw_aabb_gizmos(
+    mut gizmos: Gizmos,
+    aabbs: Query<(&Aabb, &GlobalTransform, &PickSelection)>,
+    editor_camera: Query<(&GlobalTransform, &OrthographicProjection), With<Ed2dCamera>>,
+) {
+    let Ok((cam_transform, cam_projection)) = editor_camera.get_single() else {
+        return;
+    };
+
+    let view_area = cam_projection.area;
+
+    let view_height = view_area.height();
+    let view_width = view_area.width();
+
+    // let grid_sizes = [
+    //     1., 2., 5., 10., 20., 50., 100., 200., 500., 1000., 2000., 5000.,
+    // ];
+    let grid_sizes = [1., 10., 100., 1000., 10_000.];
+    let grid_size = grid_sizes
+        .iter()
+        .copied()
+        .find(|&size| view_height / size < 50.)
+        .unwrap_or(10_000.);
+
+    // let grid_size = 100.;
+
+    let cell_count = UVec2::new(
+        (view_width / grid_size).ceil() as u32 + 3,
+        (view_height / grid_size).ceil() as u32 + 3,
+    ) / 2
+        * 2;
+    // let cell_count = UVec2::splat(10);
+
+    let color = palettes::tailwind::NEUTRAL_500.with_alpha(0.3);
+
+    let cam_pos = cam_transform.translation().xy();
+    // let center = (view_area.center() / grid_size).floor() * grid_size;
+    let center = (cam_pos / grid_size).floor() * grid_size;
+    // let center = Vec2::ZERO;
+
+    gizmos.grid_2d(center, 0., cell_count, Vec2::splat(grid_size), color);
+
     for (aabb, transform, pick_selection) in &aabbs {
         if !pick_selection.is_selected {
             continue;
         }
 
         let (scale, rotation, translation) = transform.to_scale_rotation_translation();
-        let size = scale.xy() * aabb.half_extents.xy() * 2.0;
-        let color = palettes::basic::LIME;
-        gizmos.rect(translation, rotation, size, color)
+        let size = scale.xy() * aabb.half_extents.xy() * 2.;
+        let color = palettes::tailwind::NEUTRAL_50;
+        gizmos.rect(translation, rotation, size, color);
+        let base_length = view_height / 15.0;
+        gizmos.axes_2d(*transform, base_length);
     }
 }
 
