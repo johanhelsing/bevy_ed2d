@@ -5,7 +5,7 @@ use bevy::{
     prelude::*,
     reflect::TypeRegistry,
     render::{
-        camera::{NormalizedRenderTarget, Viewport},
+        camera::{CameraUpdateSystem, NormalizedRenderTarget, Viewport},
         primitives::Aabb,
     },
     window::PrimaryWindow,
@@ -71,7 +71,8 @@ impl Plugin for Ed2dPlugin {
             )
             .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
             .add_systems(PostUpdate, editor_picking)
-            .add_systems(PostUpdate, draw_grid_gizmo)
+            // grid gizmo needs to be drawn after the camera has been updated, so the projection height is correct
+            .add_systems(PostUpdate, draw_grid_gizmo.after(CameraUpdateSystem))
             .insert_resource(DebugPickingMode::Normal)
             .init_resource::<UiState>()
             .add_event::<EditorEntitySelectionChanged>();
@@ -522,7 +523,7 @@ fn draw_aabb_gizmos(
 
 fn draw_grid_gizmo(
     mut gizmos: Gizmos,
-    editor_camera: Query<(&GlobalTransform, &OrthographicProjection), With<Ed2dCamera>>,
+    editor_camera: Query<(&Transform, &OrthographicProjection), With<Ed2dCamera>>,
 ) {
     let Ok((cam_transform, cam_projection)) = editor_camera.get_single() else {
         return;
@@ -533,10 +534,10 @@ fn draw_grid_gizmo(
     let view_height = view_area.height();
     let view_width = view_area.width();
 
-    let grid_sizes = [
-        1., 2., 5., 10., 20., 50., 100., 200., 500., 1000., 2000., 5000.,
-    ];
-    // let grid_sizes = [1., 10., 100., 1000., 10_000.];
+    // let grid_sizes = [
+    //     1., 2., 5., 10., 20., 50., 100., 200., 500., 1000., 2000., 5000.,
+    // ];
+    let grid_sizes = [1., 10., 100., 1000., 10_000.];
     let grid_size = grid_sizes
         .iter()
         .copied()
@@ -551,7 +552,7 @@ fn draw_grid_gizmo(
 
     let color = palettes::tailwind::NEUTRAL_500.with_alpha(0.3);
 
-    let cam_pos = cam_transform.translation().xy();
+    let cam_pos = cam_transform.translation.xy();
     let center = (cam_pos / grid_size).floor() * grid_size;
 
     gizmos.grid_2d(center, 0., cell_count, Vec2::splat(grid_size), color);
