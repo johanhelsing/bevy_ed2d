@@ -59,7 +59,13 @@ impl Plugin for Ed2dPlugin {
             .add_systems(Update, toggle_active)
             .add_systems(
                 Update,
-                (select_clicked, draw_aabb_gizmos, handle_deselect_events).run_if(is_ui_active),
+                (
+                    select_clicked,
+                    draw_aabb_gizmos,
+                    handle_deselect_events,
+                    focus_selected_object,
+                )
+                    .run_if(is_ui_active),
             )
             .add_systems(
                 Update,
@@ -636,6 +642,39 @@ fn toggle_pancam(
             && !mouse_buttons.any_pressed(pancam.grab_buttons.as_slice().iter().copied())
         {
             pancam.enabled = false;
+        }
+    }
+}
+
+fn focus_selected_object(
+    keys: Res<ButtonInput<KeyCode>>,
+    ui_state: Res<UiState>,
+    mut cameras: Query<(&mut Transform, &OrthographicProjection), With<Ed2dCamera>>,
+    focusable_entities: Query<&Transform, Without<Ed2dCamera>>,
+    mut target_pos: Local<Option<Vec2>>,
+    time: Res<Time<Real>>,
+) {
+    if keys.just_pressed(KeyCode::KeyF) {
+        if let Some(selected) = ui_state.selected_entities.iter().next() {
+            if let Ok(selected_pos) = focusable_entities.get(selected).map(|t| t.translation) {
+                *target_pos = Some(selected_pos.xy());
+            }
+        }
+    }
+    if let Some(pos) = *target_pos {
+        for (mut transform, proj) in &mut cameras.iter_mut() {
+            let view_height = proj.area.height();
+            let new_pos = transform
+                .translation
+                .xy()
+                .lerp(Vec2::new(pos.x, pos.y), 10. * time.delta_seconds());
+
+            if Vec2::distance_squared(new_pos, transform.translation.xy()) < view_height * 0.01 {
+                *target_pos = None;
+            } else {
+                transform.translation.x = new_pos.x;
+                transform.translation.y = new_pos.y;
+            }
         }
     }
 }
