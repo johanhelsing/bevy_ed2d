@@ -654,20 +654,21 @@ fn focus_selected_object(
     mut target_pos: Local<Option<Vec2>>,
     time: Res<Time<Real>>,
 ) {
-    if keys.just_pressed(KeyCode::KeyF) {
+    if keys.just_pressed(KeyCode::KeyF) && ui_state.viewport_hovered {
         if let Some(selected) = ui_state.selected_entities.iter().next() {
             if let Ok(selected_pos) = focusable_entities.get(selected).map(|t| t.translation) {
                 *target_pos = Some(selected_pos.xy());
             }
         }
     }
+
     if let Some(pos) = *target_pos {
         for (mut transform, proj) in &mut cameras.iter_mut() {
             let view_height = proj.area.height();
             let new_pos = transform
                 .translation
                 .xy()
-                .lerp(Vec2::new(pos.x, pos.y), 10. * time.delta_seconds());
+                .lerp(pos, 10. * time.delta_seconds());
 
             if Vec2::distance_squared(new_pos, transform.translation.xy()) < view_height * 0.01 {
                 *target_pos = None;
