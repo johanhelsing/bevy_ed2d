@@ -61,7 +61,7 @@ impl Plugin for Ed2dPlugin {
                 Update,
                 (
                     select_clicked,
-                    draw_aabb_gizmos,
+                    draw_transform_gizmos,
                     handle_deselect_events,
                     focus_selected_object,
                 )
@@ -502,9 +502,9 @@ fn handle_deselect_events(
 //     }*/
 // }
 
-fn draw_aabb_gizmos(
+fn draw_transform_gizmos(
     mut gizmos: Gizmos,
-    aabbs: Query<(&Aabb, &GlobalTransform, &PickSelection)>,
+    aabbs: Query<(Option<&Aabb>, &GlobalTransform, &PickSelection)>,
     editor_camera: Query<&OrthographicProjection, With<Ed2dCamera>>,
 ) {
     let Ok(cam_projection) = editor_camera.get_single() else {
@@ -520,10 +520,14 @@ fn draw_aabb_gizmos(
         }
 
         let (scale, rotation, translation) = transform.to_scale_rotation_translation();
-        let size = scale.xy() * aabb.half_extents.xy() * 2.;
-        let color = palettes::tailwind::NEUTRAL_50;
-        gizmos.rect(translation, rotation, size, color);
+
         gizmos.axes_2d(*transform, base_length);
+
+        if let Some(aabb) = aabb {
+            let size = scale.xy() * aabb.half_extents.xy() * 2.;
+            let color = palettes::tailwind::NEUTRAL_50;
+            gizmos.rect(translation, rotation, size, color);
+        }
     }
 }
 
