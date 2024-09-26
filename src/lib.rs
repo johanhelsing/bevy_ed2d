@@ -61,7 +61,6 @@ impl Plugin for Ed2dPlugin {
                 Update,
                 (
                     select_clicked,
-                    draw_transform_gizmos,
                     handle_deselect_events,
                     focus_selected_object,
                 )
@@ -79,6 +78,7 @@ impl Plugin for Ed2dPlugin {
             .add_systems(PostUpdate, editor_picking)
             // grid gizmo needs to be drawn after the camera has been updated, so the projection height is correct
             .add_systems(PostUpdate, draw_grid_gizmo.after(CameraUpdateSystem))
+            .add_systems(PostUpdate, draw_transform_gizmos.after(draw_grid_gizmo))
             .init_resource::<UiState>()
             .add_event::<EditorEntitySelectionChanged>();
 
