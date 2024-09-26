@@ -431,7 +431,11 @@ fn auto_add_pickables(
     query: Query<Entity, (Without<Pickable>, With<Sprite>)>,
 ) {
     for entity in &query {
-        commands.entity(entity).insert(PickableBundle::default());
+        commands
+            .entity(entity)
+            // we use try_insert here, otherwise bevy will panic if we delete the entity
+            // during the same frame
+            .try_insert(PickableBundle::default());
     }
 }
 
