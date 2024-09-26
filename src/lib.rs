@@ -504,7 +504,8 @@ fn handle_deselect_events(
 
 fn draw_transform_gizmos(
     mut gizmos: Gizmos,
-    aabbs: Query<(Option<&Aabb>, &GlobalTransform, &PickSelection)>,
+    aabbs: Query<(Option<&Aabb>, &GlobalTransform)>,
+    ui_state: Res<UiState>,
     editor_camera: Query<&OrthographicProjection, With<Ed2dCamera>>,
 ) {
     let Ok(cam_projection) = editor_camera.get_single() else {
@@ -514,19 +515,17 @@ fn draw_transform_gizmos(
     let view_height = cam_projection.area.height();
     let base_length = view_height / 15.0;
 
-    for (aabb, transform, pick_selection) in &aabbs {
-        if !pick_selection.is_selected {
-            continue;
-        }
+    for selected_entity in ui_state.selected_entities.iter() {
+        if let Ok((aabb, transform)) = aabbs.get(selected_entity) {
+            let (scale, rotation, translation) = transform.to_scale_rotation_translation();
 
-        let (scale, rotation, translation) = transform.to_scale_rotation_translation();
+            gizmos.axes_2d(*transform, base_length);
 
-        gizmos.axes_2d(*transform, base_length);
-
-        if let Some(aabb) = aabb {
-            let size = scale.xy() * aabb.half_extents.xy() * 2.;
-            let color = palettes::tailwind::NEUTRAL_50;
-            gizmos.rect(translation, rotation, size, color);
+            if let Some(aabb) = aabb {
+                let size = scale.xy() * aabb.half_extents.xy() * 2.;
+                let color = palettes::tailwind::NEUTRAL_50;
+                gizmos.rect(translation, rotation, size, color);
+            }
         }
     }
 }
