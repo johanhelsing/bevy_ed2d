@@ -447,64 +447,6 @@ fn handle_deselect_events(
     }
 }
 
-// fn set_gizmo_mode(input: Res<ButtonInput<KeyCode>>, mut ui_state: ResMut<UiState>) {
-//     for (key, mode) in [
-//         (KeyCode::KeyR, GizmoMode::Rotate),
-//         (KeyCode::KeyT, GizmoMode::Translate),
-//         (KeyCode::KeyS, GizmoMode::Scale),
-//     ] {
-//         if input.just_pressed(key) {
-//             ui_state.gizmo_mode = mode;
-//         }
-//     }
-// }
-
-// #[allow(unused)]
-// fn draw_gizmo(
-//     ui: &mut egui::Ui,
-//     world: &mut World,
-//     selected_entities: &SelectedEntities,
-//     gizmo_mode: GizmoMode,
-// ) {
-//     let (cam_transform, projection) = world
-//         .query_filtered::<(&GlobalTransform, &Projection), With<MainCamera>>()
-//         .single(world);
-//     let view_matrix = Mat4::from(cam_transform.affine().inverse());
-//     let projection_matrix = projection.get_clip_from_view();
-
-//     if selected_entities.len() != 1 {
-//         return;
-//     }
-
-//     /*for selected in selected_entities.iter() {
-//         let Some(transform) = world.get::<Transform>(selected) else {
-//             continue;
-//         };
-//         let model_matrix = transform.compute_matrix();
-
-//         let mut gizmo = Gizmo::new(GizmoConfig {
-//             view_matrix: view_matrix.into(),
-//             projection_matrix: projection_matrix.into(),
-//             orientation: GizmoOrientation::Local,
-//             modes: EnumSet::from(gizmo_mode),
-//             ..Default::default()
-//         });
-//         let Some([result]) = gizmo
-//             .interact(ui, model_matrix.into())
-//             .map(|(_, res)| res.as_slice())
-//         else {
-//             continue;
-//         };
-
-//         let mut transform = world.get_mut::<Transform>(selected).unwrap();
-//         transform = Transform {
-//             translation: Vec3::from(<[f64; 3]>::from(result.translation)),
-//             rotation: Quat::from_array(<[f64; 4]>::from(result.rotation)),
-//             scale: Vec3::from(<[f64; 3]>::from(result.scale)),
-//         };
-//     }*/
-// }
-
 fn draw_transform_gizmos(
     mut gizmos: Gizmos,
     aabbs: Query<(Option<&Aabb>, &GlobalTransform)>,
